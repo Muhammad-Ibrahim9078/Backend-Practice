@@ -19,6 +19,9 @@ const dataSchema = new mongoose.Schema(
         date: {
             type: Date,
             default: Date.now
+        },
+        emoji: {
+            type: String,
         }
     },
     {
