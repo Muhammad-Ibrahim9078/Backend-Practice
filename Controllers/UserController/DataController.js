@@ -5,7 +5,8 @@ const dataSave = async (req, res) => {
     try {
         const { title, type, amount, date, emoji } = req.body;
 
-        //  Basic validation
+        //  Basic Validation
+
         if (!title || !type || amount === undefined) {
             return res.status(400).json({
                 status: false,
@@ -21,6 +22,7 @@ const dataSave = async (req, res) => {
         }
 
         const numericAmount = Number(amount);
+
         if (isNaN(numericAmount)) {
             return res.status(400).json({
                 status: false,
@@ -28,16 +30,27 @@ const dataSave = async (req, res) => {
             });
         }
 
-        //  Save new entry (NOW WITH EMOJI + DATE)
+        //  Dynamic Emoji Logic
+
+        const emojiMap = {
+            income: "💸",
+            expense: "💰"
+        };
+
+        const finalEmoji = emoji || emojiMap[type];
+
+        // Save New Entry
+
         const newEntry = await dataModal.create({
             title: title.trim(),
             type,
             amount: numericAmount,
             date: date ? new Date(date) : new Date(),
-            emoji: emoji || "💰"
+            emoji: finalEmoji
         });
 
-        //  Calculate totals
+        //  Calculate Totals
+
         const incomeTotalAgg = await dataModal.aggregate([
             { $match: { type: "income" } },
             { $group: { _id: null, total: { $sum: "$amount" } } }
@@ -53,7 +66,8 @@ const dataSave = async (req, res) => {
 
         const balance = totalIncome - totalExpense;
 
-        //  Fetch last income and expense
+        // Fetch Last Income & Expense
+
         const lastIncome = await dataModal
             .findOne({ type: "income" })
             .sort({ createdAt: -1 });
@@ -61,6 +75,8 @@ const dataSave = async (req, res) => {
         const lastExpense = await dataModal
             .findOne({ type: "expense" })
             .sort({ createdAt: -1 });
+
+        // Final Response
 
         return res.status(200).json({
             status: true,
