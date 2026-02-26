@@ -22,6 +22,7 @@ const dataSchema = new mongoose.Schema(
         },
         emoji: {
             type: String,
+            default: "💰"
         }
     },
     {
